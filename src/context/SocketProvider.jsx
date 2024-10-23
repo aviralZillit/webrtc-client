@@ -9,7 +9,7 @@ export const useSocket = () => {
 };
 
 export const SocketProvider = (props) => {
-  const socket = useMemo(() => io("http://34.203.35.121:8000"), []); //34.203.35.121
+  const socket = useMemo(() => io("https://54.152.44.50:8000"), []); //34.203.35.121 //54.152.44.50
   // const socket = useMemo(() => io("localhost:8000"), []);
 
   return (
