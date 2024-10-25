@@ -9,6 +9,7 @@ const RoomPage = () => {
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
+  // eslint-disable-next-line no-unused-vars
   const [myName, setMyName] = useState("You");
   const [remoteName, setRemoteName] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
