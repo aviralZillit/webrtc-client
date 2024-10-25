@@ -2,49 +2,76 @@ import React, { useEffect, useCallback, useState } from "react";
 import ReactPlayer from "react-player";
 import peer from "../service/peer";
 import { useSocket } from "../context/SocketProvider";
+import './RoomPage.css';
 
 const RoomPage = () => {
   const socket = useSocket();
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
+  const [myName, setMyName] = useState("You");
+  const [remoteName, setRemoteName] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
-  const handleUserJoined = useCallback(({ email, id }) => {
-    console.log(`Email ${email} joined room`);
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => !prevMode);
+  };
+
+  // Toggle mute/unmute
+  const toggleMute = () => {
+    if (myStream) {
+      myStream.getAudioTracks().forEach((track) => {
+        track.enabled = !track.enabled;
+      });
+      setIsMuted((prev) => !prev);
+    }
+  };
+
+  // Handle user joining the room with name and id
+  const handleUserJoined = useCallback(({ name, id }) => {
+    console.log(`User ${name} joined the room`);
     setRemoteSocketId(id);
+    setRemoteName(name);
   }, []);
 
+  // Handle user calling, ensuring the name is passed
   const handleCallUser = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: true,
     });
     const offer = await peer.getOffer();
-    socket.emit("user:call", { to: remoteSocketId, offer });
+    socket.emit("user:call", { to: remoteSocketId, offer, name: myName });  // Pass name when calling
     setMyStream(stream);
-  }, [remoteSocketId, socket]);
+  }, [remoteSocketId, socket, myName]);
 
+  // Handle incoming call with offer and name
   const handleIncommingCall = useCallback(
-    async ({ from, offer }) => {
+    async ({ from, offer, name }) => {
       setRemoteSocketId(from);
+      setRemoteName(name);  // Set the name of the caller
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
       });
       setMyStream(stream);
-      console.log(`Incoming Call`, from, offer);
+      console.log(`Incoming Call from ${name}`);
       const ans = await peer.getAnswer(offer);
       socket.emit("call:accepted", { to: from, ans });
     },
     [socket]
   );
 
+  // Send stream tracks to the peer connection
   const sendStreams = useCallback(() => {
     for (const track of myStream.getTracks()) {
       peer.peer.addTrack(track, myStream);
     }
   }, [myStream]);
 
+  // Handle call acceptance
   const handleCallAccepted = useCallback(
     ({ from, ans }) => {
       peer.setLocalDescription(ans);
@@ -54,11 +81,13 @@ const RoomPage = () => {
     [sendStreams]
   );
 
+  // Handle negotiation needed
   const handleNegoNeeded = useCallback(async () => {
     const offer = await peer.getOffer();
     socket.emit("peer:nego:needed", { offer, to: remoteSocketId });
   }, [remoteSocketId, socket]);
 
+  // Set up peer negotiation needed event listener
   useEffect(() => {
     peer.peer.addEventListener("negotiationneeded", handleNegoNeeded);
     return () => {
@@ -66,6 +95,7 @@ const RoomPage = () => {
     };
   }, [handleNegoNeeded]);
 
+  // Handle negotiation needed on incoming offer
   const handleNegoNeedIncomming = useCallback(
     async ({ from, offer }) => {
       const ans = await peer.getAnswer(offer);
@@ -74,18 +104,20 @@ const RoomPage = () => {
     [socket]
   );
 
+  // Handle final negotiation
   const handleNegoNeedFinal = useCallback(async ({ ans }) => {
     await peer.setLocalDescription(ans);
   }, []);
 
+  // Set up track event to receive remote streams
   useEffect(() => {
     peer.peer.addEventListener("track", async (ev) => {
       const remoteStream = ev.streams;
-      console.log("GOT TRACKS!!");
       setRemoteStream(remoteStream[0]);
     });
   }, []);
 
+  // Set up socket event listeners
   useEffect(() => {
     socket.on("user:joined", handleUserJoined);
     socket.on("incomming:call", handleIncommingCall);
@@ -110,35 +142,37 @@ const RoomPage = () => {
   ]);
 
   return (
-    <div>
-      <h1>Room Page</h1>
-      <h4>{remoteSocketId ? "Connected" : "No one in room"}</h4>
-      {myStream && <button onClick={sendStreams}>Send Stream</button>}
-      {remoteSocketId && <button onClick={handleCallUser}>CALL</button>}
-      {myStream && (
-        <>
-          <h1>My Stream</h1>
-          <ReactPlayer
-            playing
-            muted
-            height="200px"
-            width="300px"
-            url={myStream}
-          />
-        </>
-      )}
-      {remoteStream && (
-        <>
-          <h1>Remote Stream</h1>
-          <ReactPlayer
-            playing
-            muted
-            height="200px"
-            width="300px"
-            url={remoteStream}
-          />
-        </>
-      )}
+    <div className={`room-container ${isDarkMode ? "dark-mode" : "light-mode"}`}>
+      <button onClick={toggleDarkMode} className="toggle-dark-mode">
+        {isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      </button>
+      <h1 className="room-heading">Room</h1>
+      <h4 className="status">{remoteSocketId ? "Connected" : "No one in room"}</h4>
+      <div className="controls">
+        {myStream && (
+          <>
+            <button onClick={sendStreams} className="control-button">Send Stream</button>
+            <button onClick={toggleMute} className="control-button">
+              {isMuted ? "Unmute" : "Mute"}
+            </button>
+          </>
+        )}
+        {remoteSocketId && <button onClick={handleCallUser} className="control-button">Call</button>}
+      </div>
+      <div className="stream-container">
+        {myStream && (
+          <div className="stream">
+            <h2 className="stream-name">{myName}</h2>
+            <ReactPlayer playing muted={isMuted} className="video-player" url={myStream} />
+          </div>
+        )}
+        {remoteStream && (
+          <div className="stream">
+            <h2 className="stream-name">{remoteName}</h2>
+            <ReactPlayer playing className="video-player" url={remoteStream} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
