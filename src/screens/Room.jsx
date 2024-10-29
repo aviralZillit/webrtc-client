@@ -9,6 +9,7 @@ const RoomPage = () => {
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
+  // eslint-disable-next-line no-unused-vars
   const [myName, setMyName] = useState("You");
   const [remoteName, setRemoteName] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -31,8 +32,13 @@ const RoomPage = () => {
 
   // End call function
   const endCall = () => {
+    // Stop all media tracks in the user's stream
     myStream?.getTracks().forEach((track) => track.stop());
+
+    // Close the peer connection
     peer.peer.close();
+
+    // Reset state
     setMyStream(null);
     setRemoteStream(null);
     setRemoteSocketId(null);
@@ -53,16 +59,16 @@ const RoomPage = () => {
       audio: true,
       video: true,
     });
-    setMyStream(stream);
     const offer = await peer.getOffer();
-    socket.emit("user:call", { to: remoteSocketId, offer, name: myName });
+    socket.emit("user:call", { to: remoteSocketId, offer, name: myName });  // Pass name when calling
+    setMyStream(stream);
   }, [remoteSocketId, socket, myName]);
 
   // Handle incoming call with offer and name
   const handleIncommingCall = useCallback(
     async ({ from, offer, name }) => {
       setRemoteSocketId(from);
-      setRemoteName(name);
+      setRemoteName(name);  // Set the name of the caller
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
@@ -175,14 +181,13 @@ const RoomPage = () => {
         {myStream && (
           <div className="stream">
             <h2 className="stream-name">{myName}</h2>
-            {/* Mute the local stream for self to avoid feedback */}
-            <ReactPlayer playing muted className="video-player" url={URL.createObjectURL(myStream)} />
+            <ReactPlayer playing muted className="video-player" url={myStream} />
           </div>
         )}
         {remoteStream && (
           <div className="stream">
             <h2 className="stream-name">{remoteName}</h2>
-            <ReactPlayer playing className="video-player" url={URL.createObjectURL(remoteStream)} />
+            <ReactPlayer playing className="video-player" url={remoteStream} />
           </div>
         )}
       </div>
