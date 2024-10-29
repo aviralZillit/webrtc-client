@@ -9,7 +9,6 @@ const RoomPage = () => {
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
-  // eslint-disable-next-line no-unused-vars
   const [myName, setMyName] = useState("You");
   const [remoteName, setRemoteName] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -28,6 +27,22 @@ const RoomPage = () => {
       });
       setIsMuted((prev) => !prev);
     }
+  };
+
+  // End call function
+  const endCall = () => {
+    // Stop all media tracks in the user's stream
+    myStream?.getTracks().forEach((track) => track.stop());
+
+    // Close the peer connection
+    peer.peer.close();
+
+    // Reset state
+    setMyStream(null);
+    setRemoteStream(null);
+    setRemoteSocketId(null);
+    setRemoteName("");
+    console.log("Call Ended");
   };
 
   // Handle user joining the room with name and id
@@ -156,6 +171,7 @@ const RoomPage = () => {
             <button onClick={toggleMute} className="control-button">
               {isMuted ? "Unmute" : "Mute"}
             </button>
+            <button onClick={endCall} className="control-button">End Call</button>
           </>
         )}
         {remoteSocketId && <button onClick={handleCallUser} className="control-button">Call</button>}
