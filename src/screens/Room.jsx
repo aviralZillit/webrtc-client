@@ -168,7 +168,7 @@ const RoomPage = () => {
       <div className="controls">
         {myStream && (
           <>
-            <button onClick={sendStreams} className="control-button">Send Stream</button>
+            {/* <button onClick={sendStreams} className="control-button">Send Stream</button> */}
             <button onClick={toggleMute} className="control-button">
               {isMuted ? "Unmute" : "Mute"}
             </button>
