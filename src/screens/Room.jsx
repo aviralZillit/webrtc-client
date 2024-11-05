@@ -1,7 +1,10 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useCallback, useState } from "react";
 import ReactPlayer from "react-player";
 import peer from "../service/peer";
 import { useSocket } from "../context/SocketProvider";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDesktop } from "@fortawesome/free-solid-svg-icons";
 import './RoomPage.css';
 
 const RoomPage = () => {
@@ -9,16 +12,16 @@ const RoomPage = () => {
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
-  // eslint-disable-next-line no-unused-vars
+  const [screenStream, setScreenStream] = useState(null); // Screen sharing stream
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [myName, setMyName] = useState("You");
   const [remoteName, setRemoteName] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
 
   // Toggle dark mode
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
-  };
+  const toggleDarkMode = () => setIsDarkMode((prevMode) => !prevMode);
 
   // Toggle mute/unmute
   const toggleMute = () => {
@@ -30,15 +33,62 @@ const RoomPage = () => {
     }
   };
 
+  // Toggle video on/off
+  const toggleVideo = () => {
+    if (myStream) {
+      myStream.getVideoTracks().forEach((track) => {
+        track.enabled = !track.enabled;
+      });
+      setIsVideoOff((prev) => !prev);
+    }
+  };
+
+  // Start or stop screen sharing
+  const toggleScreenShare = async () => {
+    if (!isScreenSharing) {
+      try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+        });
+        setScreenStream(screenStream);
+        setIsScreenSharing(true);
+
+        const videoTrack = screenStream.getVideoTracks()[0];
+        peer.peer.getSenders().forEach((sender) => {
+          if (sender.track.kind === "video") {
+            sender.replaceTrack(videoTrack);
+          }
+        });
+
+        videoTrack.onended = () => {
+          stopScreenShare();
+        };
+      } catch (error) {
+        console.error("Error starting screen sharing:", error);
+      }
+    } else {
+      stopScreenShare();
+    }
+  };
+
+  // Stop screen sharing and revert to the camera
+  const stopScreenShare = () => {
+    screenStream?.getTracks().forEach((track) => track.stop());
+    setScreenStream(null);
+    setIsScreenSharing(false);
+
+    const videoTrack = myStream.getVideoTracks()[0];
+    peer.peer.getSenders().forEach((sender) => {
+      if (sender.track.kind === "video") {
+        sender.replaceTrack(videoTrack);
+      }
+    });
+  };
+
   // End call function
   const endCall = () => {
-    // Stop all media tracks in the user's stream
     myStream?.getTracks().forEach((track) => track.stop());
-
-    // Close the peer connection
     peer.peer.close();
-
-    // Reset state
     setMyStream(null);
     setRemoteStream(null);
     setRemoteSocketId(null);
@@ -46,29 +96,26 @@ const RoomPage = () => {
     console.log("Call Ended");
   };
 
-  // Handle user joining the room with name and id
   const handleUserJoined = useCallback(({ name, id }) => {
     console.log(`User ${name} joined the room`);
     setRemoteSocketId(id);
     setRemoteName(name);
   }, []);
 
-  // Handle user calling, ensuring the name is passed
   const handleCallUser = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: true,
     });
     const offer = await peer.getOffer();
-    socket.emit("user:call", { to: remoteSocketId, offer, name: myName });  // Pass name when calling
+    socket.emit("user:call", { to: remoteSocketId, offer, name: myName });
     setMyStream(stream);
   }, [remoteSocketId, socket, myName]);
 
-  // Handle incoming call with offer and name
   const handleIncommingCall = useCallback(
     async ({ from, offer, name }) => {
       setRemoteSocketId(from);
-      setRemoteName(name);  // Set the name of the caller
+      setRemoteName(name);
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
@@ -81,14 +128,12 @@ const RoomPage = () => {
     [socket]
   );
 
-  // Send stream tracks to the peer connection
   const sendStreams = useCallback(() => {
     for (const track of myStream.getTracks()) {
       peer.peer.addTrack(track, myStream);
     }
   }, [myStream]);
 
-  // Handle call acceptance
   const handleCallAccepted = useCallback(
     ({ from, ans }) => {
       peer.setLocalDescription(ans);
@@ -98,13 +143,11 @@ const RoomPage = () => {
     [sendStreams]
   );
 
-  // Handle negotiation needed
   const handleNegoNeeded = useCallback(async () => {
     const offer = await peer.getOffer();
     socket.emit("peer:nego:needed", { offer, to: remoteSocketId });
   }, [remoteSocketId, socket]);
 
-  // Set up peer negotiation needed event listener
   useEffect(() => {
     peer.peer.addEventListener("negotiationneeded", handleNegoNeeded);
     return () => {
@@ -112,7 +155,6 @@ const RoomPage = () => {
     };
   }, [handleNegoNeeded]);
 
-  // Handle negotiation needed on incoming offer
   const handleNegoNeedIncomming = useCallback(
     async ({ from, offer }) => {
       const ans = await peer.getAnswer(offer);
@@ -121,12 +163,10 @@ const RoomPage = () => {
     [socket]
   );
 
-  // Handle final negotiation
   const handleNegoNeedFinal = useCallback(async ({ ans }) => {
     await peer.setLocalDescription(ans);
   }, []);
 
-  // Set up track event to receive remote streams
   useEffect(() => {
     peer.peer.addEventListener("track", async (ev) => {
       const remoteStream = ev.streams;
@@ -134,7 +174,6 @@ const RoomPage = () => {
     });
   }, []);
 
-  // Set up socket event listeners
   useEffect(() => {
     socket.on("user:joined", handleUserJoined);
     socket.on("incomming:call", handleIncommingCall);
@@ -167,21 +206,35 @@ const RoomPage = () => {
       <h4 className="status">{remoteSocketId ? "Connected" : "No one in room"}</h4>
       <div className="controls">
         {myStream && (
-          <>
-            {/* <button onClick={sendStreams} className="control-button">Send Stream</button> */}
-            <button onClick={toggleMute} className="control-button">
-              {isMuted ? "Unmute" : "Mute"}
-            </button>
-            <button onClick={endCall} className="control-button">End Call</button>
-          </>
+          <button onClick={endCall} className="control-button">End Call</button>
         )}
         {remoteSocketId && <button onClick={handleCallUser} className="control-button">Call</button>}
+        <button onClick={toggleScreenShare} className="control-button">
+          {isScreenSharing ? "Stop Sharing" : "Share Screen"}
+        </button>
       </div>
       <div className="stream-container">
         {myStream && (
           <div className="stream">
             <h2 className="stream-name">{myName}</h2>
-            <ReactPlayer playing muted className="video-player" url={myStream} />
+            {/* // Directly pass myStream without createObjectURL */}
+<ReactPlayer
+  playing={!isVideoOff}
+  muted
+  className="video-player"
+  url={myStream}
+/>
+            <div className="video-controls-overlay">
+              <button onClick={toggleMute} className="icon-button">
+                <FontAwesomeIcon icon={isMuted ? faMicrophoneSlash : faMicrophone} className={`icon ${isMuted ? 'muted' : ''}`} />
+              </button>
+              <button onClick={toggleVideo} className="icon-button">
+                <FontAwesomeIcon icon={isVideoOff ? faVideoSlash : faVideo} className={`icon ${isVideoOff ? 'video-off' : ''}`} />
+              </button>
+              <button onClick={toggleScreenShare} className="icon-button">
+                <FontAwesomeIcon icon={faDesktop} className="icon" />
+              </button>
+            </div>
           </div>
         )}
         {remoteStream && (

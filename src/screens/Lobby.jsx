@@ -14,7 +14,8 @@ const LobbyScreen = () => {
     (e) => {
       e.preventDefault();
       socket.emit("room:join", { name, room });
-    },
+      console.log(name,room,socket); // my socket connection data 
+    },  
     [name, room, socket]
   );
 
@@ -29,9 +30,7 @@ const LobbyScreen = () => {
 
   useEffect(() => {
     socket.on("room:join", handleJoinRoom);
-    return () => {
-      socket.off("room:join", handleJoinRoom);
-    };
+    return () => {   socket.off("room:join", handleJoinRoom) };
   }, [socket, handleJoinRoom]);
 
   return (
