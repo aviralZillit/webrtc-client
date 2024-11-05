@@ -8,10 +8,19 @@ export const useSocket = () => {
   return socket;
 };
 
+// Using process.env directly
+const environment = process.env.NODE_ENV;
+console.log("Current environment:", environment);
+
+const socketUrl =
+    process.env.NODE_ENV === "prod"
+      ? process.env.REACT_APP_SOCKET_URL_PROD
+      : process.env.REACT_APP_SOCKET_URL_DEV;
+
+
 export const SocketProvider = (props) => {
-  // const socket = useMemo(() => io("https://54.152.44.50:8000"), []); //34.203.35.121 //54.152.44.50
   // const socket = useMemo(() => io("https://webrtc-dev.zillit.com"), []);
-  const socket = useMemo(() => io("localhost:8000"), []);
+  const socket = useMemo(() => io(socketUrl), []);
 
   return (
     <SocketContext.Provider value={socket}>
