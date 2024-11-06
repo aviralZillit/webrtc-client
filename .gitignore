@@ -23,7 +23,10 @@ yarn-debug.log*
 yarn-error.log*
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 .env
 
+=======
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
 =======
 >>>>>>> parent of 991dbe1 (fix mute/unmute)

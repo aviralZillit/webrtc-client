@@ -28,9 +28,12 @@ const RoomPage = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
 <<<<<<< HEAD
+<<<<<<< HEAD
   const [isFullscreen, setIsFullscreen] = useState(false);
   const myVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+=======
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
 =======
 >>>>>>> parent of 991dbe1 (fix mute/unmute)
 
@@ -163,6 +166,10 @@ const RoomPage = () => {
     ({ from, ans }) => {
       peer.setLocalDescription(ans);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+      console.log("Call Accepted!");
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
 =======
       console.log("Call Accepted!");
 >>>>>>> parent of 991dbe1 (fix mute/unmute)
@@ -256,6 +263,7 @@ const RoomPage = () => {
           <div className="stream">
             <h2 className="stream-name">{myName}</h2>
 <<<<<<< HEAD
+<<<<<<< HEAD
             <video
               ref={myVideoRef}
               className="video-player"
@@ -264,6 +272,8 @@ const RoomPage = () => {
               playsInline
             />
 =======
+=======
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
             {/* // Directly pass myStream without createObjectURL */}
 <ReactPlayer
   playing={!isVideoOff}
@@ -271,6 +281,9 @@ const RoomPage = () => {
   className="video-player"
   url={myStream}
 />
+<<<<<<< HEAD
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
+=======
 >>>>>>> parent of 991dbe1 (fix mute/unmute)
             <div className="video-controls-overlay">
               <button onClick={toggleMute} className="icon-button">
@@ -295,6 +308,7 @@ const RoomPage = () => {
         {remoteStream && (
           <div className={`stream ${isFullscreen ? "fullscreen-video" : ""}`}>
             <h2 className="stream-name">{remoteName}</h2>
+<<<<<<< HEAD
 <<<<<<< HEAD
             <video
               ref={remoteVideoRef}
@@ -322,6 +336,9 @@ const RoomPage = () => {
                 />
               </button>
             </div>
+=======
+            <ReactPlayer playing className="video-player" url={remoteStream} />
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
 =======
             <ReactPlayer playing className="video-player" url={remoteStream} />
 >>>>>>> parent of 991dbe1 (fix mute/unmute)
