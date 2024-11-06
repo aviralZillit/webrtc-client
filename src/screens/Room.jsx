@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState,useRef } from "react";
 import ReactPlayer from "react-player";
 import peer from "../service/peer";
 import { useSocket } from "../context/SocketProvider";
@@ -27,15 +27,9 @@ const RoomPage = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-<<<<<<< HEAD
-<<<<<<< HEAD
   const [isFullscreen, setIsFullscreen] = useState(false);
   const myVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
-=======
->>>>>>> parent of 991dbe1 (fix mute/unmute)
-=======
->>>>>>> parent of 991dbe1 (fix mute/unmute)
 
   // Toggle dark mode
   const toggleDarkMode = () => setIsDarkMode((prevMode) => !prevMode);
@@ -165,15 +159,8 @@ const RoomPage = () => {
   const handleCallAccepted = useCallback(
     ({ from, ans }) => {
       peer.setLocalDescription(ans);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
       console.log("Call Accepted!");
->>>>>>> parent of 991dbe1 (fix mute/unmute)
-=======
-      console.log("Call Accepted!");
->>>>>>> parent of 991dbe1 (fix mute/unmute)
-      sendStreams();
+    sendStreams();
     },
     [sendStreams]
   );
@@ -262,8 +249,6 @@ const RoomPage = () => {
         {myStream && (
           <div className="stream">
             <h2 className="stream-name">{myName}</h2>
-<<<<<<< HEAD
-<<<<<<< HEAD
             <video
               ref={myVideoRef}
               className="video-player"
@@ -271,21 +256,14 @@ const RoomPage = () => {
               muted
               playsInline
             />
-=======
-=======
->>>>>>> parent of 991dbe1 (fix mute/unmute)
-            {/* // Directly pass myStream without createObjectURL */}
+           {/* // Directly pass myStream without createObjectURL */}
 <ReactPlayer
   playing={!isVideoOff}
   muted
   className="video-player"
   url={myStream}
 />
-<<<<<<< HEAD
->>>>>>> parent of 991dbe1 (fix mute/unmute)
-=======
->>>>>>> parent of 991dbe1 (fix mute/unmute)
-            <div className="video-controls-overlay">
+           <div className="video-controls-overlay">
               <button onClick={toggleMute} className="icon-button">
                 <FontAwesomeIcon
                   icon={isMuted ? faMicrophoneSlash : faMicrophone}
@@ -308,9 +286,7 @@ const RoomPage = () => {
         {remoteStream && (
           <div className={`stream ${isFullscreen ? "fullscreen-video" : ""}`}>
             <h2 className="stream-name">{remoteName}</h2>
-<<<<<<< HEAD
-<<<<<<< HEAD
-            <video
+           <video
               ref={remoteVideoRef}
               className="video-player"
               autoPlay
@@ -336,12 +312,7 @@ const RoomPage = () => {
                 />
               </button>
             </div>
-=======
-            <ReactPlayer playing className="video-player" url={remoteStream} />
->>>>>>> parent of 991dbe1 (fix mute/unmute)
-=======
-            <ReactPlayer playing className="video-player" url={remoteStream} />
->>>>>>> parent of 991dbe1 (fix mute/unmute)
+           <ReactPlayer playing className="video-player" url={remoteStream} />
           </div>
         )}
       </div>
