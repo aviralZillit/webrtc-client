@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useCallback, useState, useRef } from "react";
+import React, { useEffect, useCallback, useState } from "react";
+import ReactPlayer from "react-player";
 import peer from "../service/peer";
 import { useSocket } from "../context/SocketProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,16 +20,19 @@ const RoomPage = () => {
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
-  const [screenStream, setScreenStream] = useState(null);
+  const [screenStream, setScreenStream] = useState(null); // Screen sharing stream
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [myName, setMyName] = useState("You");
   const [remoteName, setRemoteName] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+<<<<<<< HEAD
   const [isFullscreen, setIsFullscreen] = useState(false);
   const myVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+=======
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
 
   // Toggle dark mode
   const toggleDarkMode = () => setIsDarkMode((prevMode) => !prevMode);
@@ -81,7 +85,9 @@ const RoomPage = () => {
           }
         });
 
-        videoTrack.onended = () => stopScreenShare();
+        videoTrack.onended = () => {
+          stopScreenShare();
+        };
       } catch (error) {
         console.error("Error starting screen sharing:", error);
       }
@@ -90,7 +96,7 @@ const RoomPage = () => {
     }
   };
 
-  // Stop screen sharing and revert to camera
+  // Stop screen sharing and revert to the camera
   const stopScreenShare = () => {
     screenStream?.getTracks().forEach((track) => track.stop());
     setScreenStream(null);
@@ -104,18 +110,7 @@ const RoomPage = () => {
     });
   };
 
-  useEffect(() => {
-    if (myVideoRef.current && myStream) {
-      myVideoRef.current.srcObject = myStream;
-    }
-  }, [myStream]);
-
-  useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
-    }
-  }, [remoteStream]);
-
+  // End call function
   const endCall = () => {
     myStream?.getTracks().forEach((track) => track.stop());
     peer.peer.close();
@@ -151,6 +146,7 @@ const RoomPage = () => {
         video: true,
       });
       setMyStream(stream);
+      console.log(`Incoming Call from ${name}`);
       const ans = await peer.getAnswer(offer);
       socket.emit("call:accepted", { to: from, ans });
     },
@@ -158,14 +154,18 @@ const RoomPage = () => {
   );
 
   const sendStreams = useCallback(() => {
-    myStream.getTracks().forEach((track) => {
+    for (const track of myStream.getTracks()) {
       peer.peer.addTrack(track, myStream);
-    });
+    }
   }, [myStream]);
 
   const handleCallAccepted = useCallback(
     ({ from, ans }) => {
       peer.setLocalDescription(ans);
+<<<<<<< HEAD
+=======
+      console.log("Call Accepted!");
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
       sendStreams();
     },
     [sendStreams]
@@ -196,9 +196,9 @@ const RoomPage = () => {
   }, []);
 
   useEffect(() => {
-    peer.peer.addEventListener("track", (ev) => {
-      const remoteStream = ev.streams[0];
-      setRemoteStream(remoteStream);
+    peer.peer.addEventListener("track", async (ev) => {
+      const remoteStream = ev.streams;
+      setRemoteStream(remoteStream[0]);
     });
   }, []);
 
@@ -255,6 +255,7 @@ const RoomPage = () => {
         {myStream && (
           <div className="stream">
             <h2 className="stream-name">{myName}</h2>
+<<<<<<< HEAD
             <video
               ref={myVideoRef}
               className="video-player"
@@ -262,6 +263,15 @@ const RoomPage = () => {
               muted
               playsInline
             />
+=======
+            {/* // Directly pass myStream without createObjectURL */}
+<ReactPlayer
+  playing={!isVideoOff}
+  muted
+  className="video-player"
+  url={myStream}
+/>
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
             <div className="video-controls-overlay">
               <button onClick={toggleMute} className="icon-button">
                 <FontAwesomeIcon
@@ -285,6 +295,7 @@ const RoomPage = () => {
         {remoteStream && (
           <div className={`stream ${isFullscreen ? "fullscreen-video" : ""}`}>
             <h2 className="stream-name">{remoteName}</h2>
+<<<<<<< HEAD
             <video
               ref={remoteVideoRef}
               className="video-player"
@@ -311,6 +322,9 @@ const RoomPage = () => {
                 />
               </button>
             </div>
+=======
+            <ReactPlayer playing className="video-player" url={remoteStream} />
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
           </div>
         )}
       </div>

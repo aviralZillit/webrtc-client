@@ -22,5 +22,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+<<<<<<< HEAD
 .env
 
+=======
+>>>>>>> parent of 991dbe1 (fix mute/unmute)
