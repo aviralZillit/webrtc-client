@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { createContext, useMemo, useContext } from "react";
 import { io } from "socket.io-client";
 
@@ -19,7 +20,7 @@ const socketUrl =
 
 
 export const SocketProvider = (props) => {
-  // const socket = useMemo(() => io("https://webrtc-dev.zillit.com"), []);
+  // const socket = useMemo(() => io("localhost:8000"), []);
   const socket = useMemo(() => io(socketUrl), []);
 
   return (

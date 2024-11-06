@@ -76,6 +76,7 @@
 /* Stream container styling */
 .stream-container {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
@@ -110,6 +111,26 @@
   max-width: 480px;
   max-height: 320px;
   object-fit: contain; /* Ensures video fits within dimensions without overflow */
+}
+
+/* Fullscreen mode for the remote video */
+.fullscreen-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fullscreen-video video {
+  width: 90%;
+  height: auto;
+  max-height: 100%;
 }
 
 /* Inverted video style for mirror effect */
@@ -158,6 +179,12 @@
 .icon.muted,
 .icon.video-off {
   color: red;
+}
+
+.fullscreen-icon {
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
 }
 
 /* Screen sharing mode adjustments */

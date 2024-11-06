@@ -16,24 +16,39 @@ class PeerService {
 
   async getAnswer(offer) {
     if (this.peer) {
-      await this.peer.setRemoteDescription(offer);
-      const ans = await this.peer.createAnswer();
-      await this.peer.setLocalDescription(new RTCSessionDescription(ans));
-      return ans;
+      // Ensure the peer connection is ready for setting the remote offer
+      if (this.peer.signalingState === "stable" || this.peer.signalingState === "have-local-offer") {
+        await this.peer.setRemoteDescription(offer);
+        const ans = await this.peer.createAnswer();
+        await this.peer.setLocalDescription(new RTCSessionDescription(ans));
+        return ans;
+      } else {
+        console.error("Cannot set remote offer in current signaling state:", this.peer.signalingState);
+      }
     }
   }
 
   async setLocalDescription(ans) {
     if (this.peer) {
-      await this.peer.setRemoteDescription(new RTCSessionDescription(ans));
+      // Check if the connection is in the correct state to set a remote answer
+      if (this.peer.signalingState === "have-remote-offer") {
+        await this.peer.setRemoteDescription(new RTCSessionDescription(ans));
+      } else {
+        console.error("Cannot set remote answer in current signaling state:", this.peer.signalingState);
+      }
     }
   }
 
   async getOffer() {
     if (this.peer) {
-      const offer = await this.peer.createOffer();
-      await this.peer.setLocalDescription(new RTCSessionDescription(offer));
-      return offer;
+      // Create an offer only if the peer connection is in a stable state
+      if (this.peer.signalingState === "stable") {
+        const offer = await this.peer.createOffer();
+        await this.peer.setLocalDescription(new RTCSessionDescription(offer));
+        return offer;
+      } else {
+        console.error("Cannot create offer in current signaling state:", this.peer.signalingState);
+      }
     }
   }
 }
