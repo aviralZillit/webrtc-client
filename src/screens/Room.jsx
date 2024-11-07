@@ -238,9 +238,10 @@ const RoomPage = () => {
           </button>
         )}
         {remoteSocketId && (<button onClick={handleCallUser} className="control-button"> Call </button>)}
-        <button onClick={toggleScreenShare} className="control-button">
+        {remoteSocketId && ( <button onClick={toggleScreenShare} className="control-button">
           {isScreenSharing ? "Stop Sharing" : "Share Screen"}
-        </button>
+        </button>)}
+        
       </div>
       <div className="stream-container">
         {myStream && (
