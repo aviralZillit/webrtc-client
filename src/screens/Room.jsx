@@ -107,6 +107,7 @@ const RoomPage = () => {
     });
   };
 
+  
   // End call function
   const endCall = () => {
     myStream?.getTracks().forEach((track) => track.stop());
@@ -129,9 +130,9 @@ const RoomPage = () => {
       audio: true,
       video: true,
     });
+    setMyStream(stream);
     const offer = await peer.getOffer();
     socket.emit("user:call", { to: remoteSocketId, offer, name: myName });
-    setMyStream(stream);
   }, [remoteSocketId, socket, myName]);
 
   const handleIncommingCall = useCallback(
@@ -236,11 +237,7 @@ const RoomPage = () => {
             End Call
           </button>
         )}
-        {remoteSocketId && (
-          <button onClick={handleCallUser} className="control-button">
-            Call
-          </button>
-        )}
+        {remoteSocketId && (<button onClick={handleCallUser} className="control-button"> Call </button>)}
         <button onClick={toggleScreenShare} className="control-button">
           {isScreenSharing ? "Stop Sharing" : "Share Screen"}
         </button>
@@ -249,13 +246,13 @@ const RoomPage = () => {
         {myStream && (
           <div className="stream">
             <h2 className="stream-name">{myName}</h2>
-            <video
+            {/* <video
               ref={myVideoRef}
               className="video-player"
               autoPlay
               muted
               playsInline
-            />
+            /> */}
            {/* // Directly pass myStream without createObjectURL */}
 <ReactPlayer
   playing={!isVideoOff}
@@ -286,12 +283,12 @@ const RoomPage = () => {
         {remoteStream && (
           <div className={`stream ${isFullscreen ? "fullscreen-video" : ""}`}>
             <h2 className="stream-name">{remoteName}</h2>
-           <video
+           {/* <video
               ref={remoteVideoRef}
               className="video-player"
               autoPlay
               playsInline
-            />
+            /> */}
             <div className="video-controls-overlay">
               <button onClick={toggleMute} className="icon-button">
                 <FontAwesomeIcon
